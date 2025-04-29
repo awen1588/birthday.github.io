@@ -442,32 +442,6 @@
             -webkit-appearance: none;
         }
         
-        /* Love Letter */
-        .love-letter {
-            background: #fff9f9;
-            border: 1px solid #ffcccc;
-            padding: 1.5rem;
-            border-radius: 10px;
-            max-width: 100%;
-            margin: 1.5rem auto;
-            position: relative;
-            transform: rotate(-2deg);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .love-letter::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            border: 2px dashed #ffcccc;
-            border-radius: 15px;
-            z-index: -1;
-            opacity: 0.5;
-        }
-        
         /* Candle Animation */
         .candle-container {
             position: relative;
@@ -633,38 +607,6 @@
             }
         }
         
-        /* Initial Interaction Overlay */
-        .interaction-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            flex-direction: column;
-            color: white;
-            text-align: center;
-            padding: 1rem;
-        }
-        
-        .interaction-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-            margin-top: 1rem;
-        }
-        
         /* Birthday Cake */
         .birthday-cake {
             position: relative;
@@ -704,6 +646,25 @@
             border-radius: 50%;
         }
         
+        /* Wish Text Area */
+        .wish-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ffcccc;
+            border-radius: 10px;
+            margin: 1rem 0;
+            font-family: 'Poppins', sans-serif;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .wish-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+        }
+        
         /* iOS specific fixes */
         @supports (-webkit-touch-callout: none) {
             .birthday-card {
@@ -719,15 +680,6 @@
     </style>
 </head>
 <body>
-    <!-- Initial Interaction Overlay (for audio autoplay) -->
-    <div class="interaction-overlay" id="interactionOverlay">
-        <h2>Happy Birthday My Love!</h2>
-        <p>Click the button below to start the celebration!</p>
-        <button class="interaction-btn" id="startCelebrationBtn">
-            <i class="fas fa-play"></i> Start Celebration
-        </button>
-    </div>
-    
     <div class="birthday-container">
         <!-- Animated Background Elements -->
         <div id="hearts-container"></div>
@@ -807,9 +759,6 @@
                 <button class="btn-birthday" id="surpriseBtn">
                     <i class="fas fa-gift"></i> Surprise!
                 </button>
-                <button class="btn-birthday btn-secondary" id="loveLetterBtn">
-                    <i class="fas fa-heart"></i> Love Letter
-                </button>
                 <button class="btn-birthday btn-dark" id="memoryBtn">
                     <i class="fas fa-images"></i> Our Memories
                 </button>
@@ -872,11 +821,12 @@
                 <button class="close-surprise" id="closeWish">&times;</button>
                 <h3>Make a Birthday Wish!</h3>
                 <div class="love-letter">
-                    <p>Close your eyes and make a wish...</p>
+                    <p>Close your eyes, make a wish, and write it below:</p>
+                    <textarea class="wish-textarea" id="wishTextarea" placeholder="Write your birthday wish here..."></textarea>
                     <div class="candle-container">
                         <div class="candle" id="wishCandle"></div>
                     </div>
-                    <p id="wishMessage">Blow out the candle to make your wish come true!</p>
+                    <p id="wishMessage">When you're ready, blow out the candle to make your wish come true!</p>
                 </div>
                 <button class="btn-birthday" id="blowCandleBtn">
                     <i class="fas fa-birthday-cake"></i> Blow the Candle!
@@ -895,30 +845,28 @@
             // Set birthday date to June 4, 2025
             const birthdayDate = new Date('June 4, 2025 00:00:00');
             
-            // Initial interaction overlay
-            const interactionOverlay = document.getElementById('interactionOverlay');
-            const startCelebrationBtn = document.getElementById('startCelebrationBtn');
+            // Start music automatically (will work after user interacts with page)
             const birthdaySong = document.getElementById('birthdaySong');
+            let isPlaying = false;
             
-            // Show interaction overlay initially
-            interactionOverlay.style.display = 'flex';
+            // Try to play music (will work after user interaction)
+            function tryPlayMusic() {
+                birthdaySong.play()
+                    .then(() => {
+                        isPlaying = true;
+                        document.getElementById('musicPlayer').innerHTML = '<i class="fas fa-pause"></i>';
+                    })
+                    .catch(e => {
+                        // Music will play after user interacts
+                        console.log('Audio play prevented, will play after interaction');
+                    });
+            }
             
-            // Start celebration button
-            startCelebrationBtn.addEventListener('click', function() {
-                // Hide overlay
-                interactionOverlay.style.opacity = '0';
-                setTimeout(() => {
-                    interactionOverlay.style.display = 'none';
-                }, 300);
-                
-                // Play music (now allowed after user interaction)
-                birthdaySong.play().catch(e => console.log('Autoplay prevented:', e));
-                document.getElementById('musicPlayer').innerHTML = '<i class="fas fa-pause"></i>';
-                isPlaying = true;
-                
-                // Start animations
-                initAnimations();
-            });
+            // Try to play music when user first interacts with page
+            document.body.addEventListener('click', function firstInteraction() {
+                tryPlayMusic();
+                document.body.removeEventListener('click', firstInteraction);
+            }, { once: true });
             
             // Countdown Timer
             function updateCountdown() {
@@ -951,448 +899,492 @@
             setInterval(updateCountdown, 1000);
             updateCountdown();
             
-            // Initialize animations after user interaction
-            function initAnimations() {
-                // Create animated hearts
-                function createHearts() {
-                    const container = document.getElementById('hearts-container');
-                    const colors = ['#ff6b6b', '#ff9e9e', '#ffb8b8', '#ff5252', '#ff9e7d'];
-                    
-                    for (let i = 0; i < 30; i++) {
-                        const heart = document.createElement('div');
-                        heart.classList.add('heart');
-                        heart.innerHTML = '❤️';
-                        heart.style.left = Math.random() * 100 + 'vw';
-                        heart.style.animationDuration = Math.random() * 3 + 5 + 's';
-                        heart.style.fontSize = Math.random() * 20 + 10 + 'px';
-                        heart.style.opacity = Math.random() * 0.5 + 0.3;
-                        heart.style.animationDelay = Math.random() * 5 + 's';
-                        container.appendChild(heart);
-                    }
+            // Create animated hearts
+            function createHearts() {
+                const container = document.getElementById('hearts-container');
+                const colors = ['#ff6b6b', '#ff9e9e', '#ffb8b8', '#ff5252', '#ff9e7d'];
+                
+                for (let i = 0; i < 30; i++) {
+                    const heart = document.createElement('div');
+                    heart.classList.add('heart');
+                    heart.innerHTML = '❤️';
+                    heart.style.left = Math.random() * 100 + 'vw';
+                    heart.style.animationDuration = Math.random() * 3 + 5 + 's';
+                    heart.style.fontSize = Math.random() * 20 + 10 + 'px';
+                    heart.style.opacity = Math.random() * 0.5 + 0.3;
+                    heart.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(heart);
                 }
+            }
+            
+            // Create floating bubbles
+            function createBubbles() {
+                const container = document.getElementById('bubbles-container');
                 
-                // Create floating bubbles
-                function createBubbles() {
-                    const container = document.getElementById('bubbles-container');
-                    
-                    for (let i = 0; i < 20; i++) {
-                        const bubble = document.createElement('div');
-                        bubble.classList.add('bubble');
-                        bubble.style.left = Math.random() * 100 + 'vw';
-                        bubble.style.top = Math.random() * 100 + 'vh';
-                        bubble.style.width = Math.random() * 30 + 10 + 'px';
-                        bubble.style.height = bubble.style.width;
-                        bubble.style.animationDuration = Math.random() * 10 + 10 + 's';
-                        bubble.style.animationDelay = Math.random() * 5 + 's';
-                        container.appendChild(bubble);
-                    }
+                for (let i = 0; i < 20; i++) {
+                    const bubble = document.createElement('div');
+                    bubble.classList.add('bubble');
+                    bubble.style.left = Math.random() * 100 + 'vw';
+                    bubble.style.top = Math.random() * 100 + 'vh';
+                    bubble.style.width = Math.random() * 30 + 10 + 'px';
+                    bubble.style.height = bubble.style.width;
+                    bubble.style.animationDuration = Math.random() * 10 + 10 + 's';
+                    bubble.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(bubble);
                 }
+            }
+            
+            // Create floating hearts
+            function createFloatingHearts() {
+                const container = document.getElementById('floating-hearts-container');
+                const hearts = ['❤️', '💖', '💗', '💓', '💘', '💝'];
                 
-                // Create floating hearts
-                function createFloatingHearts() {
-                    const container = document.getElementById('floating-hearts-container');
-                    const hearts = ['❤️', '💖', '💗', '💓', '💘', '💝'];
-                    
-                    for (let i = 0; i < 15; i++) {
-                        const heart = document.createElement('div');
-                        heart.classList.add('floating-heart');
-                        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-                        heart.style.left = Math.random() * 100 + 'vw';
-                        heart.style.top = Math.random() * 100 + 'vh';
-                        heart.style.fontSize = Math.random() * 20 + 15 + 'px';
-                        heart.style.animationDuration = Math.random() * 10 + 10 + 's';
-                        heart.style.animationDelay = Math.random() * 5 + 's';
-                        container.appendChild(heart);
-                    }
+                for (let i = 0; i < 15; i++) {
+                    const heart = document.createElement('div');
+                    heart.classList.add('floating-heart');
+                    heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                    heart.style.left = Math.random() * 100 + 'vw';
+                    heart.style.top = Math.random() * 100 + 'vh';
+                    heart.style.fontSize = Math.random() * 20 + 15 + 'px';
+                    heart.style.animationDuration = Math.random() * 10 + 10 + 's';
+                    heart.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(heart);
                 }
+            }
+            
+            // Create balloons
+            function createBalloons() {
+                const container = document.getElementById('balloons-container');
+                const colors = ['#ff6b6b', '#ffb347', '#ffcc33', '#4cd964', '#5ac8fa', '#007aff', '#5856d6'];
                 
-                // Create balloons
-                function createBalloons() {
-                    const container = document.getElementById('balloons-container');
-                    const colors = ['#ff6b6b', '#ffb347', '#ffcc33', '#4cd964', '#5ac8fa', '#007aff', '#5856d6'];
+                for (let i = 0; i < 15; i++) {
+                    const balloon = document.createElement('div');
+                    balloon.classList.add('balloon');
+                    balloon.style.left = Math.random() * 100 + 'vw';
+                    balloon.style.bottom = -70 + 'px';
+                    balloon.style.animationDuration = Math.random() * 5 + 10 + 's';
+                    balloon.style.animationDelay = Math.random() * 5 + 's';
+                    balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                     
-                    for (let i = 0; i < 15; i++) {
-                        const balloon = document.createElement('div');
-                        balloon.classList.add('balloon');
-                        balloon.style.left = Math.random() * 100 + 'vw';
-                        balloon.style.bottom = -70 + 'px';
-                        balloon.style.animationDuration = Math.random() * 5 + 10 + 's';
-                        balloon.style.animationDelay = Math.random() * 5 + 's';
-                        balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                        
-                        // Balloon string
-                        const string = document.createElement('div');
-                        string.style.position = 'absolute';
-                        string.style.width = '2px';
-                        string.style.height = '30px';
-                        string.style.backgroundColor = '#ccc';
-                        string.style.bottom = '-30px';
-                        string.style.left = '50%';
-                        string.style.transform = 'translateX(-50%)';
-                        
-                        balloon.appendChild(string);
-                        container.appendChild(balloon);
-                    }
+                    // Balloon string
+                    const string = document.createElement('div');
+                    string.style.position = 'absolute';
+                    string.style.width = '2px';
+                    string.style.height = '30px';
+                    string.style.backgroundColor = '#ccc';
+                    string.style.bottom = '-30px';
+                    string.style.left = '50%';
+                    string.style.transform = 'translateX(-50%)';
+                    
+                    balloon.appendChild(string);
+                    container.appendChild(balloon);
                 }
+            }
+            
+            // Create confetti
+            function createConfetti() {
+                const container = document.getElementById('confetti-container');
+                const colors = ['#ff6b6b', '#ffb347', '#ffcc33', '#4cd964', '#5ac8fa', '#007aff', '#5856d6'];
                 
-                // Create confetti
-                function createConfetti() {
-                    const container = document.getElementById('confetti-container');
-                    const colors = ['#ff6b6b', '#ffb347', '#ffcc33', '#4cd964', '#5ac8fa', '#007aff', '#5856d6'];
-                    
-                    for (let i = 0; i < 100; i++) {
-                        const confetti = document.createElement('div');
-                        confetti.classList.add('confetti');
-                        confetti.style.left = Math.random() * 100 + 'vw';
-                        confetti.style.top = -10 + 'px';
-                        confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
-                        confetti.style.animationDelay = Math.random() * 5 + 's';
-                        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                        confetti.style.width = Math.random() * 10 + 5 + 'px';
-                        confetti.style.height = Math.random() * 10 + 5 + 'px';
-                        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                        container.appendChild(confetti);
-                    }
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = -10 + 'px';
+                    confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                    confetti.style.animationDelay = Math.random() * 5 + 's';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = Math.random() * 10 + 5 + 'px';
+                    confetti.style.height = Math.random() * 10 + 5 + 'px';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    container.appendChild(confetti);
                 }
+            }
+            
+            // Create floating text
+            function createFloatingText() {
+                const container = document.getElementById('floating-text-container');
+                const messages = ['I Love You', 'Happy Birthday', 'My Love', 'Forever Yours', 'Best Wishes', 'My Heart'];
                 
-                // Create floating text
-                function createFloatingText() {
-                    const container = document.getElementById('floating-text-container');
-                    const messages = ['I Love You', 'Happy Birthday', 'My Love', 'Forever Yours', 'Best Wishes', 'My Heart'];
-                    
-                    for (let i = 0; i < 10; i++) {
-                        const text = document.createElement('div');
-                        text.classList.add('floating-text');
-                        text.textContent = messages[Math.floor(Math.random() * messages.length)];
-                        text.style.left = Math.random() * 100 + 'vw';
-                        text.style.top = Math.random() * 100 + 'vh';
-                        text.style.fontSize = Math.random() * 20 + 15 + 'px';
-                        text.style.animationDuration = Math.random() * 10 + 10 + 's';
-                        text.style.animationDelay = Math.random() * 10 + 's';
-                        container.appendChild(text);
-                    }
+                for (let i = 0; i < 10; i++) {
+                    const text = document.createElement('div');
+                    text.classList.add('floating-text');
+                    text.textContent = messages[Math.floor(Math.random() * messages.length)];
+                    text.style.left = Math.random() * 100 + 'vw';
+                    text.style.top = Math.random() * 100 + 'vh';
+                    text.style.fontSize = Math.random() * 20 + 15 + 'px';
+                    text.style.animationDuration = Math.random() * 10 + 10 + 's';
+                    text.style.animationDelay = Math.random() * 10 + 's';
+                    container.appendChild(text);
                 }
+            }
+            
+            // Create candle smoke
+            function createCandleSmoke() {
+                const candle = document.getElementById('birthdayCandle');
                 
-                // Create candle smoke
-                function createCandleSmoke() {
-                    const candle = document.getElementById('birthdayCandle');
-                    
-                    setInterval(() => {
-                        const smoke = document.createElement('div');
-                        smoke.classList.add('candle-smoke');
-                        smoke.style.animationDuration = Math.random() * 2 + 2 + 's';
-                        smoke.style.left = Math.random() * 20 + 40 + '%';
-                        candle.appendChild(smoke);
-                        
-                        setTimeout(() => {
-                            smoke.remove();
-                        }, 3000);
-                    }, 500);
-                }
-                
-                // Initialize animations
-                createHearts();
-                createBalloons();
-                createConfetti();
-                createFloatingText();
-                createBubbles();
-                createFloatingHearts();
-                createCandleSmoke();
-                
-                // Music player functionality
-                const musicPlayer = document.getElementById('musicPlayer');
-                let isPlaying = true; // Set to true after user interaction
-                
-                musicPlayer.addEventListener('click', function() {
-                    if (isPlaying) {
-                        birthdaySong.pause();
-                        musicPlayer.innerHTML = '<i class="fas fa-music"></i>';
-                    } else {
-                        birthdaySong.play();
-                        musicPlayer.innerHTML = '<i class="fas fa-pause"></i>';
-                    }
-                    isPlaying = !isPlaying;
-                });
-                
-                // Modal functionality
-                const surpriseModal = document.getElementById('surpriseModal');
-                const memoryModal = document.getElementById('memoryModal');
-                const wishModal = document.getElementById('wishModal');
-                
-                const surpriseBtn = document.getElementById('surpriseBtn');
-                const loveLetterBtn = document.getElementById('loveLetterBtn');
-                const memoryBtn = document.getElementById('memoryBtn');
-                const wishBtn = document.getElementById('wishBtn');
-                
-                const closeSurprise = document.getElementById('closeSurprise');
-                const closeMemory = document.getElementById('closeMemory');
-                const closeWish = document.getElementById('closeWish');
-                
-                const fireworksBtn = document.getElementById('fireworksBtn');
-                const blowCandleBtn = document.getElementById('blowCandleBtn');
-                const wishCandle = document.getElementById('wishCandle');
-                const wishMessage = document.getElementById('wishMessage');
-                
-                surpriseBtn.addEventListener('click', function() {
-                    surpriseModal.classList.add('active');
-                    createSparkles();
-                });
-                
-                loveLetterBtn.addEventListener('click', function() {
-                    surpriseModal.classList.add('active');
-                    createSparkles();
-                });
-                
-                memoryBtn.addEventListener('click', function() {
-                    memoryModal.classList.add('active');
-                    createSparkles();
-                });
-                
-                wishBtn.addEventListener('click', function() {
-                    wishModal.classList.add('active');
-                    createSparkles();
-                });
-                
-                closeSurprise.addEventListener('click', function() {
-                    surpriseModal.classList.remove('active');
-                });
-                
-                closeMemory.addEventListener('click', function() {
-                    memoryModal.classList.remove('active');
-                });
-                
-                closeWish.addEventListener('click', function() {
-                    wishModal.classList.remove('active');
-                });
-                
-                fireworksBtn.addEventListener('click', function() {
-                    createFireworks();
-                });
-                
-                blowCandleBtn.addEventListener('click', function() {
-                    // Animate candle being blown out
-                    wishCandle.style.animation = 'none';
-                    wishCandle.style.transition = 'all 0.5s ease';
-                    wishCandle.style.transform = 'translateX(-50%) rotate(10deg)';
-                    
-                    // Create smoke effect
+                setInterval(() => {
                     const smoke = document.createElement('div');
                     smoke.classList.add('candle-smoke');
-                    smoke.style.animationDuration = '1s';
-                    smoke.style.left = '50%';
-                    wishCandle.appendChild(smoke);
-                    
-                    // Change candle appearance
-                    setTimeout(() => {
-                        wishCandle.style.boxShadow = 'none';
-                        wishCandle.innerHTML = '';
-                        wishMessage.textContent = "Your wish will come true! I love you!";
-                        
-                        // Create confetti burst
-                        createConfettiBurst();
-                    }, 500);
+                    smoke.style.animationDuration = Math.random() * 2 + 2 + 's';
+                    smoke.style.left = Math.random() * 20 + 40 + '%';
+                    candle.appendChild(smoke);
                     
                     setTimeout(() => {
                         smoke.remove();
-                    }, 1000);
-                });
-                
-                // Close modals when clicking outside
-                window.addEventListener('click', function(event) {
-                    if (event.target === surpriseModal) {
-                        surpriseModal.classList.remove('active');
-                    }
-                    if (event.target === memoryModal) {
-                        memoryModal.classList.remove('active');
-                    }
-                    if (event.target === wishModal) {
-                        wishModal.classList.remove('active');
-                    }
-                });
-                
-                // Create sparkle effect
-                function createSparkles() {
-                    for (let i = 0; i < 20; i++) {
-                        setTimeout(() => {
-                            const sparkle = document.createElement('div');
-                            sparkle.classList.add('sparkle');
-                            sparkle.style.left = Math.random() * 100 + 'vw';
-                            sparkle.style.top = Math.random() * 100 + 'vh';
-                            document.body.appendChild(sparkle);
-                            
-                            setTimeout(() => {
-                                sparkle.remove();
-                            }, 1000);
-                        }, i * 100);
-                    }
+                    }, 3000);
+                }, 500);
+            }
+            
+            // Initialize animations
+            createHearts();
+            createBalloons();
+            createConfetti();
+            createFloatingText();
+            createBubbles();
+            createFloatingHearts();
+            createCandleSmoke();
+            
+            // Music player functionality
+            const musicPlayer = document.getElementById('musicPlayer');
+            
+            musicPlayer.addEventListener('click', function() {
+                if (isPlaying) {
+                    birthdaySong.pause();
+                    musicPlayer.innerHTML = '<i class="fas fa-music"></i>';
+                } else {
+                    birthdaySong.play();
+                    musicPlayer.innerHTML = '<i class="fas fa-pause"></i>';
+                }
+                isPlaying = !isPlaying;
+            });
+            
+            // Modal functionality
+            const surpriseModal = document.getElementById('surpriseModal');
+            const memoryModal = document.getElementById('memoryModal');
+            const wishModal = document.getElementById('wishModal');
+            
+            const surpriseBtn = document.getElementById('surpriseBtn');
+            const memoryBtn = document.getElementById('memoryBtn');
+            const wishBtn = document.getElementById('wishBtn');
+            
+            const closeSurprise = document.getElementById('closeSurprise');
+            const closeMemory = document.getElementById('closeMemory');
+            const closeWish = document.getElementById('closeWish');
+            
+            const fireworksBtn = document.getElementById('fireworksBtn');
+            const blowCandleBtn = document.getElementById('blowCandleBtn');
+            const wishCandle = document.getElementById('wishCandle');
+            const wishMessage = document.getElementById('wishMessage');
+            const wishTextarea = document.getElementById('wishTextarea');
+            
+            surpriseBtn.addEventListener('click', function() {
+                surpriseModal.classList.add('active');
+                createSparkles();
+            });
+            
+            memoryBtn.addEventListener('click', function() {
+                memoryModal.classList.add('active');
+                createSparkles();
+            });
+            
+            wishBtn.addEventListener('click', function() {
+                wishModal.classList.add('active');
+                createSparkles();
+                // Clear previous wish when opening
+                wishTextarea.value = '';
+                // Reset candle if it was blown out before
+                resetWishCandle();
+            });
+            
+            closeSurprise.addEventListener('click', function() {
+                surpriseModal.classList.remove('active');
+            });
+            
+            closeMemory.addEventListener('click', function() {
+                memoryModal.classList.remove('active');
+            });
+            
+            closeWish.addEventListener('click', function() {
+                wishModal.classList.remove('active');
+            });
+            
+            fireworksBtn.addEventListener('click', function() {
+                createFireworks();
+            });
+            
+            blowCandleBtn.addEventListener('click', function() {
+                // Only proceed if there's a wish written
+                if (wishTextarea.value.trim() === '') {
+                    wishMessage.textContent = "Please write your wish before blowing out the candle!";
+                    wishMessage.style.color = "red";
+                    return;
                 }
                 
-                // Firework effect
-                function createFireworks() {
-                    for (let i = 0; i < 30; i++) {
-                        setTimeout(() => {
-                            createFirework();
-                        }, i * 100);
-                    }
-                }
+                // Animate candle being blown out
+                wishCandle.style.animation = 'none';
+                wishCandle.style.transition = 'all 0.5s ease';
+                wishCandle.style.transform = 'translateX(-50%) rotate(10deg)';
                 
-                function createFirework() {
-                    const colors = ['#ff6b6b', '#ffb347', '#ffcc33', '#4cd964', '#5ac8fa', '#007aff', '#5856d6'];
-                    const x = Math.random() * window.innerWidth;
-                    const y = Math.random() * window.innerHeight / 2;
-                    
-                    for (let i = 0; i < 20; i++) {
-                        const particle = document.createElement('div');
-                        particle.style.position = 'fixed';
-                        particle.style.width = '6px';
-                        particle.style.height = '6px';
-                        particle.style.borderRadius = '50%';
-                        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                        particle.style.left = x + 'px';
-                        particle.style.top = y + 'px';
-                        particle.style.boxShadow = `0 0 10px 2px ${colors[Math.floor(Math.random() * colors.length)]}`;
-                        particle.style.transform = 'scale(0)';
-                        particle.style.transition = 'all 0.5s ease-out, opacity 1s ease-out';
-                        document.body.appendChild(particle);
-                        
-                        const angle = Math.random() * Math.PI * 2;
-                        const distance = Math.random() * 100 + 50;
-                        const duration = Math.random() * 1000 + 500;
-                        
-                        setTimeout(() => {
-                            particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(1)`;
-                            particle.style.opacity = '0';
-                        }, 10);
-                        
-                        setTimeout(() => {
-                            particle.remove();
-                        }, duration);
-                    }
-                }
+                // Create smoke effect
+                const smoke = document.createElement('div');
+                smoke.classList.add('candle-smoke');
+                smoke.style.animationDuration = '1s';
+                smoke.style.left = '50%';
+                wishCandle.appendChild(smoke);
                 
-                // Confetti burst effect
-                function createConfettiBurst() {
-                    const container = document.createElement('div');
-                    container.style.position = 'fixed';
-                    container.style.top = '50%';
-                    container.style.left = '50%';
-                    container.style.transform = 'translate(-50%, -50%)';
-                    container.style.zIndex = '1000';
-                    document.body.appendChild(container);
+                // Change candle appearance
+                setTimeout(() => {
+                    wishCandle.style.boxShadow = 'none';
+                    wishCandle.innerHTML = '';
+                    wishMessage.textContent = "Your wish has been sent to the universe! It will come true!";
+                    wishMessage.style.color = "var(--primary-color)";
                     
-                    for (let i = 0; i < 50; i++) {
-                        const confetti = document.createElement('div');
-                        confetti.style.position = 'absolute';
-                        confetti.style.width = '10px';
-                        confetti.style.height = '10px';
-                        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                        confetti.style.transform = 'translate(-50%, -50%)';
-                        container.appendChild(confetti);
-                        
-                        const angle = Math.random() * Math.PI * 2;
-                        const distance = Math.random() * 100 + 50;
-                        const duration = Math.random() * 1000 + 500;
-                        
-                        confetti.animate([
-                            { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
-                            { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance - 100}px) scale(1)`, opacity: 0 }
-                        ], {
-                            duration: duration,
-                            easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
-                        });
-                        
-                        setTimeout(() => {
-                            confetti.remove();
-                        }, duration);
-                    }
-                    
+                    // Create confetti burst
+                    createConfettiBurst();
+                }, 500);
+                
+                setTimeout(() => {
+                    smoke.remove();
+                }, 1000);
+            });
+            
+            // Reset wish candle to initial state
+            function resetWishCandle() {
+                wishCandle.style = '';
+                wishCandle.innerHTML = `
+                    <div class="candle-smoke"></div>
+                    <style>
+                        .candle::after {
+                            content: '';
+                            position: absolute;
+                            top: -10px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            width: 20px;
+                            height: 20px;
+                            background: #ff9e00;
+                            border-radius: 50% 50% 20% 20%;
+                            box-shadow: 
+                                0 0 20px #ff6600,
+                                0 0 40px #ff3300,
+                                0 0 60px #ff0000;
+                            animation: flicker 2s infinite alternate;
+                            filter: blur(1px);
+                        }
+                        .candle::before {
+                            content: '';
+                            position: absolute;
+                            top: -5px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            width: 5px;
+                            height: 15px;
+                            background: #333;
+                            border-radius: 5px;
+                            z-index: 1;
+                        }
+                    </style>
+                `;
+                wishMessage.textContent = "When you're ready, blow out the candle to make your wish come true!";
+                wishMessage.style.color = "inherit";
+            }
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === surpriseModal) {
+                    surpriseModal.classList.remove('active');
+                }
+                if (event.target === memoryModal) {
+                    memoryModal.classList.remove('active');
+                }
+                if (event.target === wishModal) {
+                    wishModal.classList.remove('active');
+                }
+            });
+            
+            // Create sparkle effect
+            function createSparkles() {
+                for (let i = 0; i < 20; i++) {
                     setTimeout(() => {
-                        container.remove();
-                    }, 1500);
-                }
-                
-                // Make the card draggable on mobile
-                const card = document.querySelector('.birthday-card');
-                let isDragging = false;
-                let startX, startY, initialX, initialY;
-                
-                card.addEventListener('mousedown', startDrag);
-                card.addEventListener('touchstart', startDrag);
-                
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('touchmove', drag);
-                
-                document.addEventListener('mouseup', endDrag);
-                document.addEventListener('touchend', endDrag);
-                
-                function startDrag(e) {
-                    isDragging = true;
-                    const clientX = e.clientX || e.touches[0].clientX;
-                    const clientY = e.clientY || e.touches[0].clientY;
-                    
-                    startX = clientX;
-                    startY = clientY;
-                    
-                    initialX = card.offsetLeft;
-                    initialY = card.offsetTop;
-                    
-                    card.style.transition = 'none';
-                    e.preventDefault();
-                }
-                
-                function drag(e) {
-                    if (!isDragging) return;
-                    
-                    const clientX = e.clientX || e.touches[0].clientX;
-                    const clientY = e.clientY || e.touches[0].clientY;
-                    
-                    const dx = clientX - startX;
-                    const dy = clientY - startY;
-                    
-                    card.style.left = initialX + dx + 'px';
-                    card.style.top = initialY + dy + 'px';
-                    
-                    // Tilt effect based on movement
-                    const tiltX = (dy / 10);
-                    const tiltY = -(dx / 10);
-                    card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-                }
-                
-                function endDrag() {
-                    isDragging = false;
-                    card.style.transition = 'all 0.5s ease';
-                    card.style.left = '50%';
-                    card.style.top = '50%';
-                    card.style.transform = 'perspective(1000px) translate(-50%, -50%) rotateX(0) rotateY(0)';
-                }
-                
-                // Add sparkle effect to buttons on hover
-                const buttons = document.querySelectorAll('.btn-birthday');
-                buttons.forEach(button => {
-                    button.addEventListener('mouseenter', function() {
-                        createButtonSparkles(button);
-                    });
-                    
-                    button.addEventListener('touchstart', function() {
-                        createButtonSparkles(button);
-                    }, { passive: true });
-                });
-                
-                function createButtonSparkles(button) {
-                    const rect = button.getBoundingClientRect();
-                    
-                    for (let i = 0; i < 5; i++) {
                         const sparkle = document.createElement('div');
                         sparkle.classList.add('sparkle');
-                        sparkle.style.left = (Math.random() * rect.width) + rect.left + 'px';
-                        sparkle.style.top = (Math.random() * rect.height) + rect.top + 'px';
+                        sparkle.style.left = Math.random() * 100 + 'vw';
+                        sparkle.style.top = Math.random() * 100 + 'vh';
                         document.body.appendChild(sparkle);
                         
                         setTimeout(() => {
                             sparkle.remove();
                         }, 1000);
-                    }
+                    }, i * 100);
+                }
+            }
+            
+            // Firework effect
+            function createFireworks() {
+                for (let i = 0; i < 30; i++) {
+                    setTimeout(() => {
+                        createFirework();
+                    }, i * 100);
+                }
+            }
+            
+            function createFirework() {
+                const colors = ['#ff6b6b', '#ffb347', '#ffcc33', '#4cd964', '#5ac8fa', '#007aff', '#5856d6'];
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight / 2;
+                
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.style.position = 'fixed';
+                    particle.style.width = '6px';
+                    particle.style.height = '6px';
+                    particle.style.borderRadius = '50%';
+                    particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    particle.style.boxShadow = `0 0 10px 2px ${colors[Math.floor(Math.random() * colors.length)]}`;
+                    particle.style.transform = 'scale(0)';
+                    particle.style.transition = 'all 0.5s ease-out, opacity 1s ease-out';
+                    document.body.appendChild(particle);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 100 + 50;
+                    const duration = Math.random() * 1000 + 500;
+                    
+                    setTimeout(() => {
+                        particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(1)`;
+                        particle.style.opacity = '0';
+                    }, 10);
+                    
+                    setTimeout(() => {
+                        particle.remove();
+                    }, duration);
+                }
+            }
+            
+            // Confetti burst effect
+            function createConfettiBurst() {
+                const container = document.createElement('div');
+                container.style.position = 'fixed';
+                container.style.top = '50%';
+                container.style.left = '50%';
+                container.style.transform = 'translate(-50%, -50%)';
+                container.style.zIndex = '1000';
+                document.body.appendChild(container);
+                
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'absolute';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.transform = 'translate(-50%, -50%)';
+                    container.appendChild(confetti);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 100 + 50;
+                    const duration = Math.random() * 1000 + 500;
+                    
+                    confetti.animate([
+                        { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+                        { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance - 100}px) scale(1)`, opacity: 0 }
+                    ], {
+                        duration: duration,
+                        easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
+                    });
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, duration);
+                }
+                
+                setTimeout(() => {
+                    container.remove();
+                }, 1500);
+            }
+            
+            // Make the card draggable on mobile
+            const card = document.querySelector('.birthday-card');
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+            
+            card.addEventListener('mousedown', startDrag);
+            card.addEventListener('touchstart', startDrag);
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag);
+            
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            
+            function startDrag(e) {
+                isDragging = true;
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                startX = clientX;
+                startY = clientY;
+                
+                initialX = card.offsetLeft;
+                initialY = card.offsetTop;
+                
+                card.style.transition = 'none';
+                e.preventDefault();
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                
+                card.style.left = initialX + dx + 'px';
+                card.style.top = initialY + dy + 'px';
+                
+                // Tilt effect based on movement
+                const tiltX = (dy / 10);
+                const tiltY = -(dx / 10);
+                card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            }
+            
+            function endDrag() {
+                isDragging = false;
+                card.style.transition = 'all 0.5s ease';
+                card.style.left = '50%';
+                card.style.top = '50%';
+                card.style.transform = 'perspective(1000px) translate(-50%, -50%) rotateX(0) rotateY(0)';
+            }
+            
+            // Add sparkle effect to buttons on hover
+            const buttons = document.querySelectorAll('.btn-birthday');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    createButtonSparkles(button);
+                });
+                
+                button.addEventListener('touchstart', function() {
+                    createButtonSparkles(button);
+                }, { passive: true });
+            });
+            
+            function createButtonSparkles(button) {
+                const rect = button.getBoundingClientRect();
+                
+                for (let i = 0; i < 5; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.classList.add('sparkle');
+                    sparkle.style.left = (Math.random() * rect.width) + rect.left + 'px';
+                    sparkle.style.top = (Math.random() * rect.height) + rect.top + 'px';
+                    document.body.appendChild(sparkle);
+                    
+                    setTimeout(() => {
+                        sparkle.remove();
+                    }, 1000);
                 }
             }
         });
